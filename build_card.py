@@ -63,6 +63,7 @@ rows = [
     ('kv', 'Education', 'Purdue University'),
     ('kv', 'Previously', 'ZF, Product Innovation'),
     ('blank',),
+    ('section', 'Personal'),
     ('kv', 'Interests', 'Controls, Applied Math, AI'),
     ('kv', 'Hobbies', 'Travel, Reading, Languages'),
     ('blank',),
