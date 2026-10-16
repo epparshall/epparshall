@@ -1,5 +1,6 @@
 # Builds the README card: an ASCII portrait from portrait.jpg beside a neofetch-style
-# info column, written as dark_mode.svg and light_mode.svg next to this script.
+# info column, written as dark_mode_<hash>.svg and light_mode_<hash>.svg next to this
+# script, with the README updated to point at them.
 #
 # Edit the `rows` list below to change the text, then run:
 #   python3 build_card.py          (needs numpy, opencv-python, pillow)
@@ -116,6 +117,22 @@ def svg(theme):
     out.append('</text>\n</svg>\n')
     return '\n'.join(out)
 
+# GitHub serves README images through caches that ignore query strings, so a card
+# edited in place can show its old version for a long time. Instead each SVG is
+# named after a hash of its contents, and the README is pointed at the new names.
+import hashlib, re
+readme = HERE / 'README.md'
+prefix = ''
+if not readme.exists():                      # the copy inside the website repo
+    readme, prefix = HERE.parent / 'README.md', f'{HERE.name}/'
+text = readme.read_text()
 for theme in ('dark', 'light'):
-    (HERE / f'{theme}_mode.svg').write_text(svg(theme))
+    body = svg(theme)
+    name = f'{theme}_mode_{hashlib.sha1(body.encode()).hexdigest()[:8]}.svg'
+    for old in HERE.glob(f'{theme}_mode*.svg'):
+        if old.name != name:
+            old.unlink()
+    (HERE / name).write_text(body)
+    text = re.sub(rf'{re.escape(prefix)}{theme}_mode[^"]*\.svg(\?[^"]*)?', prefix + name, text)
+readme.write_text(text)
 print(f'art {ART_COLS}x{ART_ROWS}, card {TOTAL_W}x{TOTAL_H}')
